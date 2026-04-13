@@ -598,7 +598,6 @@
           <h3>${escapeHtml(type.name)}</h3>
           <p class="card-tagline">${escapeHtml(type.tagline)}</p>
           <div class="profile-chips">${chips}</div>
-          <p class="library-copy">${formatLongText(type.copy.normal)}</p>
         </article>
       `;
     }).join("");
@@ -778,10 +777,6 @@
     textarea.select();
     document.execCommand("copy");
     textarea.remove();
-  }
-
-  function formatLongText(text) {
-    return escapeHtml(text).replace(/\n{2,}/g, "<br><br>").replace(/\n/g, "<br>");
   }
 
   function escapeHtml(value) {
