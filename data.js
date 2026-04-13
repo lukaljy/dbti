@@ -48,6 +48,92 @@
     emotionSpike: { emotional_heat: 0.8 }
   };
 
+  const questionModeSources = [
+    {
+      key: "profile35",
+      label: "35题人格题",
+      badge: "35 QUESTIONS",
+      description: "四选一情境题，直接按选项给多个底层维度加减分，更适合快速试玩人格结果。",
+      file: "问题文档.md",
+      parser: "weightedOptions"
+    },
+    {
+      key: "scale80",
+      label: "80题量表题",
+      badge: "80 QUESTIONS",
+      description: "五级量表题，每个底层维度 5 题，按正反向均分换算为 0-100，更适合精细调试维度。",
+      file: "问题文档-80题.md",
+      parser: "likertScale"
+    }
+  ];
+
+  const dimensionDetails = {
+    expression_vs_competition: {
+      high: "更偏竞技、博弈、赛果与赢面。",
+      low: "更偏表达、观点输出、自我投射。"
+    },
+    stage_vs_team: {
+      high: "更偏赛事现场、赛场机制与比赛刺激。",
+      low: "更偏辩论队、队友关系与共同体氛围。"
+    },
+    initiation_tendency: {
+      high: "更习惯主动发起攻防、抢先开线。",
+      low: "更愿意观察、等待对方出招后再回应。"
+    },
+    pressing_intensity: {
+      high: "更倾向连续追问、压缩承诺、逼对方表态。",
+      low: "更倾向点到为止，不一定一路追到底。"
+    },
+    fact_vs_mechanism: {
+      high: "更依赖数据、案例、现实事实与可验证锚点。",
+      low: "更偏机理、逻辑链条与抽象推演。"
+    },
+    reality_vs_setting: {
+      high: "更偏政策题、社会议题、现实热点。",
+      low: "更偏脑洞题、哲学题、抽象设定。"
+    },
+    self_vs_judge: {
+      high: "更倾向讲评委想听、最能转化成票的话。",
+      low: "更倾向讲自己真正想讲、真正认同的内容。"
+    },
+    judge_vs_performance: {
+      high: "更认为评委变量会显著左右结果。",
+      low: "更相信表现本身决定比赛结果。"
+    },
+    tournament_activity: {
+      high: "参赛、约赛、看赛、复盘等辩论活动频率更高。",
+      low: "辩论更像阶段性活动，不是持续生活状态。"
+    },
+    daily_argumentativeness: {
+      high: "日常生活中也更容易进入辩论式表达。",
+      low: "更少把辩论感带进普通聊天。"
+    },
+    meme_intensity: {
+      high: "更爱玩梗、造梗、制造传播素材。",
+      low: "更正经、克制、少娱乐化。"
+    },
+    emotional_heat: {
+      high: "更容易被赛场情绪和攻防节奏卷入。",
+      low: "更稳定，不容易被挑衅或场面带跑。"
+    },
+    team_construction: {
+      high: "更习惯从整队分工、主线和收束思考比赛。",
+      low: "更关注自己负责的点位和局部输出。"
+    },
+    solo_vs_coordination: {
+      high: "更偏配合、补位、接线与同步。",
+      low: "更偏单兵突破、独立作战。"
+    },
+    chain_vs_scene: {
+      high: "更偏场景构造、画面感、代入感。",
+      low: "更偏逻辑链条、机制分析、因果扣合。"
+    },
+    plain_vs_stylized: {
+      high: "更偏包装、修辞、节奏与语言设计。",
+      low: "更偏朴素、直给、克制表达。"
+    }
+  };
+
   const makeProfile = (overrides) => {
     const profile = Object.fromEntries(internalDimensions.map((dimension) => [dimension.key, 50]));
     return { ...profile, ...overrides };
@@ -1098,11 +1184,14 @@
   window.DBTI_DATA = {
     config: {
       demoMode: true,
+      assetVersion: "20260413-question-modes",
       fallbackThreshold: 60
     },
     internalDimensions,
     displayDimensions,
     effectTransforms,
+    questionModeSources,
+    dimensionDetails,
     questions,
     personalityTypes,
     fallbackType: {
