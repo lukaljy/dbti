@@ -1207,7 +1207,7 @@
   window.DBTI_DATA = {
     config: {
       demoMode: false,
-      assetVersion: "20260415-release",
+      assetVersion: "20260416-teammate",
       fallbackThreshold: 60
     },
     internalDimensions,

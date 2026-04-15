@@ -10,6 +10,44 @@
     ["E", "非常符合我"]
   ].map(([label, text]) => ({ label, text }));
 
+  const teammateWeights = {
+    expression_vs_competition: 0.9,
+    stage_vs_team: 0.75,
+    initiation_tendency: 0.8,
+    pressing_intensity: 0.75,
+    fact_vs_mechanism: 0.8,
+    reality_vs_setting: 0.65,
+    self_vs_judge: 0.7,
+    judge_vs_performance: 0.65,
+    tournament_activity: 0.35,
+    daily_argumentativeness: 0.45,
+    meme_intensity: 0.55,
+    emotional_heat: 0.75,
+    team_construction: 1.1,
+    solo_vs_coordination: 1.1,
+    chain_vs_scene: 0.85,
+    plain_vs_stylized: 0.75
+  };
+
+  const teammatePoleLabels = {
+    expression_vs_competition: ["观点表达", "赢面计算"],
+    stage_vs_team: ["队伍关系", "赛场刺激"],
+    initiation_tendency: ["后手观察", "主动开战"],
+    pressing_intensity: ["克制拆解", "连续压迫"],
+    fact_vs_mechanism: ["机理推演", "事实锚定"],
+    reality_vs_setting: ["抽象设定", "现实议题"],
+    self_vs_judge: ["自我表达", "评委转译"],
+    judge_vs_performance: ["表现信念", "裁判变量"],
+    tournament_activity: ["阶段参与", "高频参赛"],
+    daily_argumentativeness: ["生活切换", "日常论辩"],
+    meme_intensity: ["正经克制", "整活传播"],
+    emotional_heat: ["冷静稳定", "情绪点火"],
+    team_construction: ["局部单点", "整队建构"],
+    solo_vs_coordination: ["单兵突破", "配合补位"],
+    chain_vs_scene: ["逻辑链条", "场景画面"],
+    plain_vs_stylized: ["朴素直给", "包装修辞"]
+  };
+
   const fallbackMode = {
     key: "legacy",
     label: "旧版内置题",
@@ -55,6 +93,8 @@
     resultDescription: $("#result-desc"),
     resultMatch: $("#result-match"),
     resultSecondary: $("#result-secondary"),
+    teammateName: $("#teammate-name"),
+    teammateReason: $("#teammate-reason"),
     radarChart: $("#radar-chart"),
     dimensionList: $("#dimension-list"),
     shareText: $("#share-text")
@@ -417,7 +457,7 @@
     const hiddenType = findHiddenType();
     if (hiddenType) {
       const scores = Object.fromEntries(dimensionKeys.map((key) => [key, 50]));
-      return {
+      const result = {
         mode,
         isHidden: true,
         scores,
@@ -426,6 +466,8 @@
         secondary: null,
         displayScores: computeDisplayScores(scores)
       };
+      result.teammate = computeTeammate(result);
+      return result;
     }
 
     const scoringResult = mode.scoring === "likertScale"
@@ -440,7 +482,7 @@
         return b.similarity - a.similarity;
       });
 
-    return {
+    const result = {
       mode,
       scores,
       touched,
@@ -448,6 +490,8 @@
       secondary: matches[1] || null,
       displayScores: computeDisplayScores(scores)
     };
+    result.teammate = computeTeammate(result);
+    return result;
   }
 
   function findHiddenType() {
@@ -550,9 +594,111 @@
     return displayScores;
   }
 
+  function computeTeammate(result) {
+    const primaryCode = result.primary?.code;
+    const candidates = (data.personalityTypes || [])
+      .filter((type) => type.code !== primaryCode);
+
+    if (candidates.length === 0) return null;
+
+    const sourceProfile = result.isHidden
+      ? result.primary.profile
+      : result.scores;
+
+    const ranked = candidates
+      .map((type) => {
+        let distance = 0;
+        let weightTotal = 0;
+
+        dimensionKeys.forEach((key) => {
+          const sourceValue = sourceProfile[key] ?? 50;
+          const candidateValue = type.profile[key] ?? 50;
+          const idealValue = getIdealTeammateValue(key, sourceValue);
+          const weight = teammateWeights[key] ?? 0.5;
+
+          distance += Math.abs(candidateValue - idealValue) * weight;
+          weightTotal += 100 * weight;
+        });
+
+        const fit = Math.max(0, Math.round((1 - distance / weightTotal) * 100));
+        return { ...type, teammateDistance: distance, teammateFit: fit };
+      })
+      .sort((a, b) => {
+        if (a.teammateDistance !== b.teammateDistance) return a.teammateDistance - b.teammateDistance;
+        return b.teammateFit - a.teammateFit;
+      });
+
+    const type = ranked[0];
+    return {
+      type,
+      fit: type.teammateFit,
+      reason: buildTeammateReason(sourceProfile, type)
+    };
+  }
+
+  function getIdealTeammateValue(key, sourceValue) {
+    if (key === "team_construction") return sourceValue < 55 ? 82 : clamp(100 - sourceValue, 35, 82);
+    if (key === "solo_vs_coordination") return sourceValue < 55 ? 84 : clamp(100 - sourceValue, 40, 84);
+    if (key === "tournament_activity") return sourceValue < 45 ? 62 : sourceValue;
+    if (key === "daily_argumentativeness") return clamp(100 - sourceValue, 35, 80);
+    if (key === "emotional_heat") return clamp(100 - sourceValue, 22, 78);
+
+    return clamp(100 - sourceValue, 8, 92);
+  }
+
+  function buildTeammateReason(sourceProfile, teammate) {
+    const strongest = pickStrongestTrait(sourceProfile);
+    const balancing = pickBalancingTrait(sourceProfile, teammate.profile);
+
+    return `你更突出的倾向是「${getPoleLabel(strongest.key, strongest.value)}」，${teammate.name}能补上「${getPoleLabel(balancing.key, teammate.profile[balancing.key] ?? 50)}」。你负责把自己的强项打满，TA负责把另一侧兜住，组合起来不容易偏科。`;
+  }
+
+  function pickStrongestTrait(profile) {
+    return dimensionKeys
+      .map((key) => {
+        const value = profile[key] ?? 50;
+        return {
+          key,
+          value,
+          strength: Math.abs(value - 50) * (teammateWeights[key] ?? 0.5)
+        };
+      })
+      .sort((a, b) => b.strength - a.strength)[0] || { key: dimensionKeys[0], value: 50 };
+  }
+
+  function pickBalancingTrait(sourceProfile, teammateProfile) {
+    return dimensionKeys
+      .map((key) => {
+        const sourceValue = sourceProfile[key] ?? 50;
+        const teammateValue = teammateProfile[key] ?? 50;
+        const sourceDelta = sourceValue - 50;
+        const teammateDelta = teammateValue - 50;
+        const opposite = sourceDelta * teammateDelta < 0;
+        const distance = Math.abs(sourceValue - teammateValue);
+        const weight = teammateWeights[key] ?? 0.5;
+
+        return {
+          key,
+          value: teammateValue,
+          opposite,
+          strength: Math.abs(sourceDelta) * distance * weight
+        };
+      })
+      .sort((a, b) => {
+        if (a.opposite !== b.opposite) return a.opposite ? -1 : 1;
+        return b.strength - a.strength;
+      })[0] || { key: dimensionKeys[0], value: 50 };
+  }
+
+  function getPoleLabel(key, value) {
+    const labels = teammatePoleLabels[key] || ["这一侧", "另一侧"];
+    return value >= 50 ? labels[1] : labels[0];
+  }
+
   function renderResult(result) {
     const primary = result.primary;
     const secondary = result.secondary;
+    const teammate = result.teammate;
     const description = primary.copy.normal;
     const shareText = primary.share.normal;
 
@@ -566,6 +712,10 @@
       : secondary
       ? `测试模式：${result.mode.label}｜相似人格：${secondary.name} · ${secondary.similarity}%`
       : `测试模式：${result.mode.label}`;
+    elements.teammateName.textContent = teammate ? teammate.type.name : "暂未生成";
+    elements.teammateReason.textContent = teammate
+      ? `${teammate.reason} 推荐指数：${teammate.fit}%`
+      : "当前结果不足以稳定推荐队友。";
     elements.shareText.textContent = shareText;
     elements.copyButton.textContent = "复制分享文案";
 

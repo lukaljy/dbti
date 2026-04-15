@@ -353,6 +353,7 @@ h2 {
   border-radius: 22px;
   padding: 18px;
   color: var(--paper);
+  font-weight: 600;
   text-align: left;
   background: rgba(244, 234, 215, 0.07);
   cursor: pointer;
@@ -374,6 +375,7 @@ h2 {
   border-radius: 50%;
   color: var(--ink);
   font-family: var(--font-display);
+  font-weight: 700;
   background: var(--paper);
 }
 
@@ -383,6 +385,10 @@ h2 {
 
 .option-text {
   align-self: center;
+  color: rgba(244, 234, 215, 0.96);
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   line-height: 1.75;
 }
 
@@ -463,6 +469,35 @@ h2 {
 
 .match-box small {
   color: rgba(244, 234, 215, 0.72);
+}
+
+.teammate-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  border: 1px solid rgba(255, 231, 122, 0.24);
+  border-radius: 20px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 231, 122, 0.12), rgba(47, 109, 246, 0.08)),
+    rgba(0, 0, 0, 0.14);
+}
+
+.teammate-box span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.teammate-box strong {
+  color: var(--yellow);
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.04em;
+}
+
+.teammate-box small {
+  color: rgba(244, 234, 215, 0.8);
+  line-height: 1.75;
 }
 
 #radar-chart {
