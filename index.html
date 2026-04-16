@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DBTI 华语辩论人格测试，测出你的辩论人格。">
     <title>DBTI 华语辩论人格测试</title>
-    <link rel="stylesheet" href="styles.css?v=20260416-teammate">
-    <script defer src="data.js?v=20260416-teammate"></script>
-    <script defer src="app.js?v=20260416-teammate"></script>
+    <link rel="stylesheet" href="styles.css?v=20260416-share-image">
+    <script defer src="data.js?v=20260416-share-image"></script>
+    <script defer src="app.js?v=20260416-share-image"></script>
   </head>
   <body>
     <main class="app-shell">
@@ -92,6 +92,7 @@
               <p id="share-text"></p>
             </div>
             <div class="result-actions">
+              <button class="primary-button" id="image-btn" type="button">生成结果图</button>
               <button class="secondary-button" id="copy-btn" type="button">复制分享文案</button>
               <button class="ghost-button" id="restart-btn" type="button">重新测试</button>
             </div>
@@ -100,5 +101,22 @@
       </section>
 
     </main>
+    <div class="share-image-overlay" id="share-image-overlay" hidden>
+      <section class="share-image-dialog" role="dialog" aria-modal="true" aria-labelledby="share-image-title">
+        <div class="share-image-header">
+          <div>
+            <div class="section-label">朋友圈结果图</div>
+            <h2 id="share-image-title">保存这张图再分享</h2>
+          </div>
+          <button class="close-button" id="share-image-close" type="button" aria-label="关闭结果图预览">关闭</button>
+        </div>
+        <p class="share-image-tip">微信不允许网页直接替你发朋友圈。你可以长按图片保存后发朋友圈；如果浏览器支持，也可以尝试系统分享图片。</p>
+        <img class="share-image-preview" id="share-image-preview" alt="DBTI 测试结果分享图">
+        <div class="share-image-actions">
+          <a class="secondary-button" id="download-image-link" href="#" download="dbti-result.png">保存图片</a>
+          <button class="primary-button" id="system-share-btn" type="button">系统分享图片</button>
+        </div>
+      </section>
+    </div>
   </body>
 </html>
